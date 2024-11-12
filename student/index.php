@@ -120,7 +120,6 @@
                 },
                 body: JSON.stringify({ student_id: studentId, course_id: courseId })
             });
-            console.log(this.body);
 
             const result = await response.text();
             console.log("Evaluation recorded successfully:", result);
