@@ -38,6 +38,7 @@ $advisorsQuery->close();
     <nav class="nav-menu">
         <a href="dashboard.php">Dashboard</a>
         <a href="add_class.php">Add Class</a>
+        <a href="add_programme.php">Add Programme</a>
         <a href="add_courses.php">Add Courses</a>
         <a href="assign_advisor.php">Assign Advisor</a>
         <a href="reports.php">Reports</a>

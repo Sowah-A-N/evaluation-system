@@ -1,15 +1,59 @@
 <?php
 include '../datacon.inc.php';
+
+if (isset($_POST['add'])) {
+    $program = mysqli_real_escape_string($conn, $_POST['programme']);
+    $p_code = mysqli_real_escape_string($conn, $_POST['programmeCode']);
+
+
+    // Check for empty fields
+    if (empty($program) || empty($p_code) ) {
+        echo "<script>alert('Please check your details.'); window.location='add_programme.php';</script>";
+        exit();
+    } else {
+        // Check if Program Name already exists
+        $checkClassQuery = "SELECT COUNT(*) as count FROM programme WHERE program = '$program '";
+        $result = $conn->query($checkClassQuery);
+
+        if ($result->num_rows > 0) {
+            // Class Name already exists
+            echo "<script>alert('Class Name already exists. Please enter a different one.'); window.location='add_programme.php';</script>";
+            exit();
+        } 
+        
+        $check_query = "SELECT COUNT(*) as count FROM programme WHERE p_code = '$p_code'";
+    $result = $conn->query($check_query);
+
+    // Fetch the result row
+    $row = $result->fetch_assoc();
+
+    if (isset($row['count']) && $row['count'] > 0) {
+        // Staff ID already exists, display an error message
+        echo '<script type="text/javascript">alert("Program Code already exists.");window.location=\'add_programme.php\';</script>';
+    } 
+        else {
+            // Insert new class record into the `classes` table
+            $insert_query = "INSERT INTO programme (p_code, program) 
+                            VALUES ('$p_code', '$program')";
+
+            if ($conn->query($insert_query) === TRUE) {
+                echo "<script>alert('New Programme added successfully.'); window.location='add_programme.php';</script>";
+            } else {
+                echo "Error adding class: " . $conn->error;
+            }
+        }
+    }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Class</title>
-    <!-- Include Flatpickr library -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <title>Add New Programme</title>
+
+    
 
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -25,10 +69,10 @@ include '../datacon.inc.php';
             <div class="row" id="proBanner">
             </div>
             <div class="d-xl-flex justify-content-between align-items-start">
-              <h2 class="text-dark font-weight-bold mb-2"> List of Classes </h2>
+              <h2 class="text-dark font-weight-bold mb-2"> List of Programmes </h2>
               <div class="d-sm-flex justify-content-xl-between align-items-center mb-2">
                 <div class="dropdown ml-0 ml-md-4 mt-2 mt-lg-0">
-                  <button class="btn btn-outline-primary" type="button" id="dropdownMenuButton1" aria-haspopup="true" aria-expanded="false" data-toggle="modal" data-target="#exampleModal"> Add a New Department</button>
+                  <button class="btn btn-outline-primary" type="button" id="dropdownMenuButton1" aria-haspopup="true" aria-expanded="false" data-toggle="modal" data-target="#exampleModal"> Add a New Program</button>
                   <button class="btn btn-outline-success" type="button" id="uploadExcelButton" aria-haspopup="true" aria-expanded="false" data-toggle="modal" data-target="#uploadExcelModal"> Upload Excel File</button>
                 </div>
               </div>
@@ -42,7 +86,7 @@ include '../datacon.inc.php';
                     <div class="row">
 <!--Table goes here -->
                         <?php
-                        $sql="SELECT * FROM classes ";
+                        $sql="SELECT * FROM programme ";
                         $result=mysqli_query($conn, $sql);
                         if (!$result) {
                             printf("Error: %s\n", mysqli_error($conn));
@@ -53,14 +97,9 @@ include '../datacon.inc.php';
                       <thead>
                         <tr>
                           <th scope="col">S/n</th>
-                          <th scope="col">Class Name </th>
-                          <th scope="col">Programme</th>
-                          <th scope="col">department</th>
-                          <th scope="col">Date of Enrollment</th>
-                          <th scope="col">Date of Completion</th>
-
-
-                          
+                          <th scope="col">Programme Name</th>
+                          <th scope="col">Programme Code</th>
+                        
                         </tr>
                       </thead>
                       <tbody>
@@ -69,16 +108,13 @@ include '../datacon.inc.php';
                     while ($row = mysqli_fetch_array($result)) {
                         echo "<tr>";
                         echo "<td>$serial_number</td>";
-                        echo "<td>" . $row['class_name'] . "</td>";
-                        echo "<td>" . $row['programme'] . "</td>";
-                        echo "<td>" . $row['department_id'] . "</td>";
-                        echo "<td>" . $row['class_year_start'] . "</td>";
-                        echo "<td>" . $row['class_year_end'] . "</td>";
+                        echo "<td>" . $row['program'] . "</td>";
+                        echo "<td>" . $row['p_code'] . "</td>";
                        
 
                         // Add form within the loop to ensure each row has its own form
-                        echo "<form action='add_class_inc.php' method='POST'>";
-                        echo "<input type='hidden' name='id' value='" . $row['class_id'] . "'>";
+                        echo "<form action='add_inc_programme.php' method='POST'>";
+                        echo "<input type='hidden' name='id' value='" . $row['t_id'] . "'>";
                        
                         
                         echo "</form>";
@@ -99,75 +135,25 @@ include '../datacon.inc.php';
                             <div class="modal-dialog" role="document">
                               <div class="modal-content">
                                 <div class="modal-header">
-                                  <h5 class="modal-title" id="exampleModalLabel">Enter New Class</h5>
+                                  <h5 class="modal-title" id="exampleModalLabel">Enter New Programme</h5>
                                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                   </button>
                                 </div>
 
                                 <div class="modal-body">
-                                <form method="POST" action="add_class_inc.php" name="add_class">
+                                <form method="POST" action="" name="add_programme">
+                                   
 
-                                  <div class="form-group">
-                                  <label for="staffName">Class Name:</label>
-                                    <input type="text" class="form-control" name="name" id="name" placeholder="Enter Class Name" required oninput="capitalizeFirstLetter(this)">
+                                <div class="form-group">
+                                  <label for="staffName">Programme Code:</label>
+                                    <input type="text" class="form-control" name="programmeCode" id="programmeCode" placeholder="Enter Programme Code" required oninput="capitalizeFirstLetter(this)">
                                   </div>
 
-                                  
-
                                   <div class="form-group">
-                            <label for="category">Programme:</label>
-                            <select id="programme" name="programme" data-array-id="programme" onchange="" >
-                    <option hidden value="">Select  Programme</option>
-                    <?php
-                    $sql = "SELECT * FROM programme ";
-                    $result = mysqli_query($conn, $sql);
-                    $row = mysqli_fetch_array($result);
-
-                    do {
-                        echo "<option value='" . $row['t_id'] . "' data-value='". $row['t_id'] ."'>" . $row['programme'] . "</option>";
-                    } while ($row = mysqli_fetch_array($result));
-                    echo "</select>"; 
-                    ?>
-                        </div>
-
-
-                        
-
-                        <div class="form-group">
-                            <label for="category">Department:</label>
-                            <select id="department" name="department" data-array-id="department" onchange="" >
-                    <option hidden value="">Select  Department</option>
-                    <?php
-                    $sql = "SELECT * FROM departments ";
-                    $result = mysqli_query($conn, $sql);
-                    $row = mysqli_fetch_array($result);
-
-                    do {
-                        echo "<option value='" . $row['department_id'] . "' data-value='". $row['department_id'] ."'>" . $row['department_name'] . "</option>";
-                    } while ($row = mysqli_fetch_array($result));
-                    echo "</select>"; 
-                    ?>
-
-
-
-                        </div>
-
-
-                        <div class="form-group">
-                        <label for="acquisition_date_start" class="control-label">Year of Enrollment:</label>
-                        <input type="text" id="date_start" name="date_start" placeholder="Year of Enrollment" required>
-
-                        </div>
-
-                        <div class="form-group">
-                        <label for="date_end">Year of Completion:</label>
-                        <input type="text" id="date_end" name="date_end"  placeholder="Year of Completion"  required>
-
-                        </div>
-                      
-
-
+                                  <label for="staffName"> Name of Programme:</label>
+                                    <input type="text" class="form-control" name="programme" id="programme" placeholder="Enter Programme Name" required oninput="capitalizeFirstLetter(this)">
+                                  </div>
 
                                  
                                 </div>
